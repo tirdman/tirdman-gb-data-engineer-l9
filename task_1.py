@@ -12,3 +12,22 @@
 Второй, с декоратором @staticmethod, должен проводить валидацию числа, месяца
 и года (например, месяц — от 1 до 12). Проверить работу полученной структуры на реальных данных.
 """
+
+
+class CustomDate:
+    day_month_year = '11-11-2020'
+
+    # @classmethod
+    # def get_date(cls):
+    #     date_list = cls.day_month_year.split('-'))
+    #
+    # @staticmethod
+    # def valid_date():
+    #     pass
+
+
+c_date = CustomDate('11-11-2020')
+print(CustomDate.day_month_year)
+
+
+
