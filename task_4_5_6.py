@@ -20,14 +20,82 @@
 «Склад оргтехники» максимум возможностей, изученных на уроках по ООП.
 """
 
+# Доступные отделы для передачи оборудования
+departments = ['Отдел 1', 'Отдел 2', 'Отдел 3']
+
+
+class NotAvailableDepartmentError(Exception):
+    pass
+
+
+class NotEnoughEquipmentError(Exception):
+    pass
+
 
 class Storage:
 
     def __init__(self, name):
+        # Название склада
         self.name = name
+        # Словарь хранения устройств
         self.__storage_list = {}
-        self.__department = {}
+        # Словарь текущей информации об устройствах, которые были переданы в отделы
+        self.__department = {
+            'Отдел 1': [],
+            'Отдел 2': [],
+            'Отдел 3': [],
+        }
 
+    def __str__(self):
+        storage_status = f'Текущее состояние склада.\n'
+        storage_status += f'Количество устройств на хранении:\n'
+        for next_type_eq in self.__storage_list.keys():
+            storage_status += f'- {next_type_eq}: {len(self.__storage_list.get(next_type_eq))}\n'
+
+        storage_status += f'---\n'
+        storage_status += f'Устройства переданные в отделы:\n'
+        for next_department in self.__department.keys():
+            current_eqs = {}
+            for next_eq in self.__department.get(next_department):
+                if next_eq.type_eq() not in current_eqs:
+                    current_eqs[next_eq.type_eq()] = 0
+                current_eqs[next_eq.type_eq()] += 1
+
+            eq_info = f'{current_eqs}'.strip("{}")
+            storage_status += f'{next_department}: {eq_info}\n'
+
+        return storage_status
+
+    # Передача оборудования на хранение
+    def transfer_to_department(self, department, type_eq, quantity):
+        try:
+            quantity = int(quantity)
+            if quantity <= 0:
+                raise ValueError
+
+            if department not in departments:
+                raise NotAvailableDepartmentError(f'Ошибка. Отдела "{department}" не существует в списке доступных')
+
+            if type_eq not in self.__storage_list or len(self.__storage_list.get(type_eq)) < quantity:
+                raise NotEnoughEquipmentError(f'Ошибка. На складе недостаточно устройств типа {type_eq}')
+
+            # Единицы снимаются с хранения и передаются в отдел
+            eqs = self.__storage_list.get(type_eq)[:quantity]
+            del self.__storage_list.get(type_eq)[:quantity]
+            self.__department[department] += eqs
+
+        except ValueError as e:
+            print('Количество должно быть положительным числом')
+        except NotAvailableDepartmentError as e:
+            print(e)
+        except NotEnoughEquipmentError as e:
+            print(e)
+
+    # Проверка дублей сирийный номеров
+    def check_sn_duplicate(self, eq):
+        return not any(eq.serial_number == next_eq.serial_number for next_eq in self.__storage_list[eq.type_eq()])
+
+    # Прием оборудования на склад
     def receive_equipment(self, eq_list):
         for next_eq in eq_list:
 
@@ -39,12 +107,8 @@ class Storage:
 
         return self.__storage_list
 
-    def check_sn_duplicate(self, eq):
-        return not any(eq.serial_number == next_eq.serial_number for next_eq in self.__storage_list[eq.type_eq()])
-
 
 class OfficeEquipment:
-    __TYPE_EQUIPMENT = 'НЕ ОПРЕДЕЛЕННО'
 
     def __init__(self, color, brand, model, serial_number):
         self.brand = brand
@@ -107,18 +171,36 @@ class Copier(OfficeEquipment, ):
         return f"Тип устройства: {__class__.__TYPE_EQUIPMENT}, {general}, {specific}"
 
 
+# Создание экземляров устройств
 printer = Printer('black', 'samsung', '1210', 11111, True)
+printer2 = Printer('black', 'samsung', '1210', 11112, True)
 scanner = Scanner('red', 'lg', '5820', 22222, True)
 copier = Copier('white', 'xerox', '4490', 33333, ['A4', 'A3'])
+copier2 = Copier('white', 'xerox', '4490', 33334, ['A4'])
+copier3 = Copier('white', 'xerox', '4490', 33335, ['A4', 'A3'])
+copier4 = Copier('white', 'xerox', '4490', 33336, ['A4', 'A3', 'A2', 'A1'])
 
+# Пример вывода информации об устройствах
+print("#Кастомный __str__ оборудования:")
 print(printer)
 print(scanner)
 print(copier)
 
+# Создание экземляра склада
 storage = Storage('Склад 9')
 
 # Приёмка оборудования на склад
-print(storage.receive_equipment([printer, printer, printer, scanner, copier]))
+storage.receive_equipment([printer, printer2, scanner, copier, copier2, copier3, copier4])
 
-# Передача оборудования в отдел
-print(storage.receive_equipment([printer, printer, printer, scanner, copier]))
+# Пример вывода информации о складе
+print()
+print("#Кастомный __str__ склада:")
+print(storage)
+
+# Передача оборудования в отделы
+storage.transfer_to_department('Отдел 1', 'Принтер', 2)
+storage.transfer_to_department('Отдел 1', 'Сканер', 1)
+storage.transfer_to_department('Отдел 2', 'Ксерокс', 4)
+
+print("#Кастомный __str__ склада после передачи оборудования в отделы:")
+print(storage)

@@ -14,20 +14,40 @@
 """
 
 
+class DateInvalidErr(Exception):
+    pass
+
+
 class CustomDate:
-    day_month_year = '11-11-2020'
+    day_month_year = ''
 
-    # @classmethod
-    # def get_date(cls):
-    #     date_list = cls.day_month_year.split('-'))
-    #
-    # @staticmethod
-    # def valid_date():
-    #     pass
+    def __init__(self, in_date):
+        CustomDate.day_month_year = in_date
+
+    @classmethod
+    def split_date_to_attributes(cls):
+        cls.day, cls.month, cls.year = [int(i) for i in cls.day_month_year.split('-')]
+
+    @staticmethod
+    def valid_date(in_date):
+        day, month, year = [int(i) for i in in_date.split('-')]
+
+        if month < 1 or month > 12:
+            raise DateInvalidErr('Месяц должен быть в диапазоне [1, 12]')
+        #
+        if year < 1950 or year > 2020:
+            raise DateInvalidErr('Год должен быть в диапазоне [1950, 2020]')
+
+        if day < 1 or day > 31:
+            raise DateInvalidErr('День должен быть в диапазоне [1, 31]')
+
+        return True
 
 
-c_date = CustomDate('11-11-2020')
+c_date = CustomDate('11-12-2020')
 print(CustomDate.day_month_year)
 
+CustomDate.split_date_to_attributes()
+print(f'День: {CustomDate.day}, Месяц: {CustomDate.month}, Год: {CustomDate.year}')
 
-
+CustomDate.valid_date('11-12-2020')
